@@ -6,7 +6,7 @@ import Loader from "./components/Loader";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const API_URL = "/api/files";
+const API_URL = "https://file-storage-project.onrender.com/api/files";
 
 function App() {
   const [files, setFiles] = useState([]);
