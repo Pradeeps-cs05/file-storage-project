@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-const API_URL = "http://localhost:5000/api/files";
+const API_URL = "https://file-storage-project.onrender.com/api/files";
 
 function FileUpload({ refreshFiles }) {
   const [file, setFile] = useState(null);

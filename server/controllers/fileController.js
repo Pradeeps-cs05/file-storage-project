@@ -50,6 +50,8 @@ exports.uploadFile = async (req, res) => {
       message: "File uploaded successfully",
       data: newFile,
     });
+    
+    console.log("Saved to Mongo:", newFile);
 
   } catch (err) {
     res.status(500).json({
