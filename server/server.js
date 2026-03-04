@@ -6,6 +6,8 @@ const connectDB = require("./config/db");
 const fileRoutes = require("./routes/fileRoutes");
 
 const app = express();
+app.set("trust proxy", 1);
+
 connectDB();
 
 app.use(cors());
