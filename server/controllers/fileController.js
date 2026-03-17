@@ -1,11 +1,11 @@
+const s3 = require("../config/s3");
+const File =require("../models/File.js");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 const { PutObjectCommand, GetObjectCommand, DeleteObjectCommand } = require("@aws-sdk/client-s3");
 
 // ==============================
 // 📤 Upload File
 // ==============================
-const s3 = require("../config/s3");
-const File =require("../models/File.js");
 
 exports.uploadFile = async (req, res) => {
   try {
