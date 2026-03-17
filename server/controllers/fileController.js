@@ -1,9 +1,10 @@
-const supabase = require("../config/supabase");
-const File = require("../models/File");
-
 // ==============================
 // 📤 Upload File
 // ==============================
+const { PutObjectCommand } = require("@aws-sdk/client-s3");
+const s3 = require("../config/s3");
+const File =require("../models/File.js");
+
 exports.uploadFile = async (req, res) => {
   try {
     if (!req.file) {
@@ -13,51 +14,37 @@ exports.uploadFile = async (req, res) => {
       });
     }
 
-    // Unique storage file name
-    const storagePath = `${Date.now()}-${req.file.originalname}`;
+    const fileName = Date.now() + "-" + req.file.originalname;
 
-    // Upload to Supabase
-    const { error: uploadError } = await supabase.storage
-      .from("uploads")
-      .upload(storagePath, req.file.buffer, {
-        contentType: req.file.mimetype,
-      });
+    const params = {
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: fileName,
+      Body: req.file.buffer,
+      ContentType: req.file.mimetype,
+    };
 
-    if (uploadError) {
-      return res.status(500).json({
-        success: false,
-        message: "File upload to Supabase failed",
-        error: uploadError.message,
-      });
-    }
+    await s3.send(new PutObjectCommand(params));
 
-    // Get public URL
-    const { data: publicUrlData } = supabase.storage
-      .from("uploads")
-      .getPublicUrl(storagePath);
+    const fileUrl = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
 
-    const fileUrl = publicUrlData.publicUrl;
-
-    // Save to MongoDB
     const newFile = await File.create({
       filename: req.file.originalname,
       fileUrl,
-      storagePath,   // 🔥 IMPORTANT
+      storagePath: fileName,
     });
 
     res.status(201).json({
       success: true,
-      message: "File uploaded successfully",
+      message: "Uploaded to S3",
       data: newFile,
     });
-    
-    console.log("Saved to Mongo:", newFile);
 
-  } catch (err) {
+  } catch (error) {
+    console.error(error);
     res.status(500).json({
       success: false,
-      message: "Server error",
-      error: err.message,
+      message: "Upload failed",
+      error: error.message,
     });
   }
 };
