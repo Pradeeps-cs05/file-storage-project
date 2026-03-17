@@ -5,7 +5,7 @@ const upload = require("../middleware/uploadMiddleware");
 const {
   uploadFile,
   getAllFiles,
-  downloadFile,
+  getDownloadUrl,
   deleteFile
 } = require("../controllers/fileController");
 
