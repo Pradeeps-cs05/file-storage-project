@@ -11,16 +11,11 @@ const {
 
 // Upload
 router.post("/upload", upload.single("file"), uploadFile);
-
-// Download (specific route first)
-router.get("/:id/download", downloadFile);
-
-// Delete
-router.delete("/:id", deleteFile);
-
 // Get all files
 router.get("/", getAllFiles);
 // Get download URL
 router.get("/download/:id", getDownloadUrl);
+// Delete file
+router.delete("/:id", deleteFile);
 
 module.exports = router;

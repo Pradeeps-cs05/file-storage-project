@@ -7,35 +7,41 @@ function FileTable({ files, refreshFiles }) {
   const [downloadingId, setDownloadingId] = useState(null);
   const [progress, setProgress] = useState(0);
 
-  const handleDownload = async (url, filename, id) => {
-    try {
-      setDownloadingId(id);
-      setProgress(0);
+  const handleDownload = async (id, filename) => {
+  try {
+    setDownloadingId(id);
+    setProgress(0);
 
-      const response = await axios.get(url, {
-        responseType: "blob",
-        onDownloadProgress: (progressEvent) => {
-          const percent = Math.round(
-            (progressEvent.loaded * 100) / progressEvent.total
-          );
-          setProgress(percent);
-        },
-      });
+    // 🔥 call backend to get presigned URL
+    const res = await axios.get(`${API_URL}/download/${id}`);
+    const downloadUrl = res.data.url;
 
-      const blob = new Blob([response.data]);
-      const link = document.createElement("a");
-      link.href = window.URL.createObjectURL(blob);
-      link.download = filename;
-      link.click();
+    // 🔥 now download from that URL
+    const response = await axios.get(downloadUrl, {
+      responseType: "blob",
+      onDownloadProgress: (progressEvent) => {
+        const percent = Math.round(
+          (progressEvent.loaded * 100) / progressEvent.total
+        );
+        setProgress(percent);
+      },
+    });
 
-      toast.success("Download completed 🎉");
-    } catch (error) {
-      toast.error("Download failed ❌");
-    } finally {
-      setDownloadingId(null);
-      setProgress(0);
-    }
-  };
+    const blob = new Blob([response.data]);
+    const link = document.createElement("a");
+    link.href = window.URL.createObjectURL(blob);
+    link.download = filename;
+    link.click();
+
+    toast.success("Download completed 🎉");
+  } catch (error) {
+    console.error(error);
+    toast.error("Download failed ❌");
+  } finally {
+    setDownloadingId(null);
+    setProgress(0);
+  }
+};
 
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this file?")) return;
@@ -75,7 +81,7 @@ function FileTable({ files, refreshFiles }) {
                 {/* DOWNLOAD BUTTON */}
                 <button
                   onClick={() =>
-                    handleDownload(file.fileUrl, file.filename, file._id)
+                    handleDownload(file._id, file.filename)
                   }
                   className="text-blue-400 hover:underline"
                 >

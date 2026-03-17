@@ -1,5 +1,6 @@
 const { GetObjectCommand } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+const { PutObjectCommand, GetObjectCommand, DeleteObjectCommand } = require("@aws-sdk/client-s3");
 
 // ==============================
 // 📤 Upload File
@@ -75,36 +76,15 @@ exports.getAllFiles = async (req, res) => {
 };
 
 // ==============================
-// ⬇️ Download File
+// 🔗 Get Download URL (Presigned)
 // ==============================
-exports.downloadFile = async (req, res) => {
+exports.getDownloadUrl = async (req, res) => {
   try {
     const file = await File.findById(req.params.id);
 
     if (!file) {
-      return res.status(404).json({
-        success: false,
-        message: "File not found",
-      });
+      return res.status(404).json({ message: "File not found" });
     }
-
-    // Redirect to Supabase public URL
-    res.redirect(file.fileUrl);
-
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Download failed",
-      error: error.message,
-    });
-  }
-};
-// ==============================
-// 🔗 Get Download URL
-// ==============================
-const getDownloadUrl = async (req, res) => {
-  try {
-    const file = await File.findById(req.params.id);
 
     const command = new GetObjectCommand({
       Bucket: process.env.AWS_BUCKET_NAME,
@@ -114,6 +94,7 @@ const getDownloadUrl = async (req, res) => {
     const url = await getSignedUrl(s3, command, { expiresIn: 60 });
 
     res.json({ success: true, url });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Download failed" });
@@ -127,40 +108,22 @@ exports.deleteFile = async (req, res) => {
     const file = await File.findById(req.params.id);
 
     if (!file) {
-      return res.status(404).json({
-        success: false,
-        message: "File not found",
-      });
+      return res.status(404).json({ message: "File not found" });
     }
 
-    console.log("Deleting from Supabase:", file.storagePath);
+    await s3.send(
+      new DeleteObjectCommand({
+        Bucket: process.env.AWS_BUCKET_NAME,
+        Key: file.storagePath,
+      })
+    );
 
-    // Delete from Supabase storage
-    const { error: deleteError } = await supabase.storage
-      .from("uploads")
-      .remove([file.storagePath]);
+    await file.deleteOne();
 
-    if (deleteError) {
-      return res.status(500).json({
-        success: false,
-        message: "Failed to delete from Supabase",
-        error: deleteError.message,
-      });
-    }
-
-    // Delete from MongoDB
-    await File.findByIdAndDelete(req.params.id);
-
-    res.status(200).json({
-      success: true,
-      message: "File deleted successfully",
-    });
+    res.json({ success: true, message: "File deleted" });
 
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Delete failed",
-      error: error.message,
-    });
+    console.error(error);
+    res.status(500).json({ message: "Delete failed" });
   }
 };
