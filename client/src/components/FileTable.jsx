@@ -1,7 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { set } from "mongoose";
 
 const API_URL = "https://api.pradeeptech.online/api/files";
 function FileTable({ files, refreshFiles }) {
