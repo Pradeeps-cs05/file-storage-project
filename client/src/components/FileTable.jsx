@@ -1,39 +1,30 @@
 import { useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { set } from "mongoose";
 
 const API_URL = "https://api.pradeeptech.online/api/files";
 function FileTable({ files, refreshFiles }) {
   const [downloadingId, setDownloadingId] = useState(null);
   const [progress, setProgress] = useState(0);
 
-  const handleDownload = async (id, filename) => {
+ const handleDownload = async (id, filename) => {
   try {
     setDownloadingId(id);
     setProgress(0);
 
-    // 🔥 call backend to get presigned URL
     const res = await axios.get(`${API_URL}/download/${id}`);
     const downloadUrl = res.data.url;
 
-    // 🔥 now download from that URL
-    const response = await axios.get(downloadUrl, {
-      responseType: "blob",
-      onDownloadProgress: (progressEvent) => {
-        const percent = Math.round(
-          (progressEvent.loaded * 100) / progressEvent.total
-        );
-        setProgress(percent);
-      },
-    });
-
-    const blob = new Blob([response.data]);
     const link = document.createElement("a");
-    link.href = window.URL.createObjectURL(blob);
+    link.href = downloadUrl;
     link.download = filename;
+    document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
 
     toast.success("Download completed 🎉");
+
   } catch (error) {
     console.error(error);
     toast.error("Download failed ❌");
