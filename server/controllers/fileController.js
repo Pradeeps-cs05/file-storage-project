@@ -1,3 +1,6 @@
+const { GetObjectCommand } = require("@aws-sdk/client-s3");
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+
 // ==============================
 // 📤 Upload File
 // ==============================
@@ -96,7 +99,26 @@ exports.downloadFile = async (req, res) => {
     });
   }
 };
+// ==============================
+// 🔗 Get Download URL
+// ==============================
+const getDownloadUrl = async (req, res) => {
+  try {
+    const file = await File.findById(req.params.id);
 
+    const command = new GetObjectCommand({
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: file.storagePath,
+    });
+
+    const url = await getSignedUrl(s3, command, { expiresIn: 60 });
+
+    res.json({ success: true, url });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Download failed" });
+  }
+};
 // ==============================
 // 🗑 Delete File
 // ==============================

@@ -20,5 +20,7 @@ router.delete("/:id", deleteFile);
 
 // Get all files
 router.get("/", getAllFiles);
+// Get download URL
+router.get("/download/:id", getDownloadUrl);
 
 module.exports = router;
