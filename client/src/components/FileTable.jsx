@@ -2,7 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-const API_URL = "https://file-storage-project.onrender.com/api/files";
+const API_URL = "https://api.pradeeptech.online/api/files";
 function FileTable({ files, refreshFiles }) {
   const [downloadingId, setDownloadingId] = useState(null);
   const [progress, setProgress] = useState(0);
