@@ -4,7 +4,6 @@ const { PutObjectCommand, GetObjectCommand, DeleteObjectCommand } = require("@aw
 // ==============================
 // 📤 Upload File
 // ==============================
-const { PutObjectCommand } = require("@aws-sdk/client-s3");
 const s3 = require("../config/s3");
 const File =require("../models/File.js");
 
